@@ -1,0 +1,16 @@
+# Local build output produced by the CI workflow; never committed.
+dist/
+
+# Rust sidecar build artifacts (compiled per platform by CI).
+sidecar-src/target/
+
+# Locally-collected sidecar binaries (CI uploads these as release
+# assets; we don't commit them).
+sidecar/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

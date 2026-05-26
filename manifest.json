@@ -1,0 +1,37 @@
+{
+  "id": "tedi.beautify",
+  "name": "Beautify",
+  "version": "0.1.0",
+  "description": "VSCode-style beautify for the active editor buffer. Formats JSON, JS/TS/JSX/TSX, HTML, Vue, Svelte, Astro, CSS/SCSS/LESS/Sass, Markdown, XML, YAML, TOML, and SQL via a native sidecar. Click the wand icon next to the markdown-preview button or press Ctrl+Alt+B.",
+  "author": "IlhamRiski - ilhamriski.com",
+  "homepage": "https://github.com/IlhamriSKY/TEDI.beautify",
+  "icon": "logo.png",
+  "main": "extension.js",
+  "permissions": [
+    "headerbar:write",
+    "ui:toast",
+    "editor:read",
+    "editor:write",
+    "invoke:shell_bg_spawn_direct",
+    "invoke:shell_bg_logs",
+    "invoke:shell_bg_kill"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "id": "tedi.beautify.format",
+        "title": "Format active document",
+        "category": "Beautify"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "tedi.beautify.format",
+        "key": "Mod+Alt+B"
+      }
+    ]
+  },
+  "engines": {
+    "tedi": ">=0.2.27"
+  }
+}

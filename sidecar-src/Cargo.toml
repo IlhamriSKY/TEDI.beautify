@@ -1,0 +1,60 @@
+[package]
+name = "tedi-beautify-helper"
+version = "0.1.0"
+edition = "2021"
+description = "Sidecar formatter helper for the tedi.beautify extension"
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "tedi-beautify-helper"
+path = "src/main.rs"
+
+[dependencies]
+# Infra. axum + tokio mirror the tedi.sql-explorer pattern: tiny HTTP server
+# on loopback authenticated by a per-boot bearer token. ~3 MB compiled.
+tokio = { version = "1.40", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal"] }
+axum = { version = "0.7", default-features = false, features = ["json", "tokio", "http1"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"
+
+# JSON via serde_json's pretty printer (2-space indent). JSONC / JSON5 reuse
+# this path; the README documents the JSONC limitation (comments are dropped
+# because the value path goes through serde_json::Value).
+# CSS / SCSS / LESS / Sass via g-plane's malva. Single crate, four language
+# modes via the Syntax enum; comments preserved.
+malva = "0.15"
+# HTML / Vue / Svelte / Astro / Angular via g-plane's markup_fmt. Embedded
+# <script> / <style> blocks pass through unchanged in v0.1.0 (the callback
+# returns the original code); future versions can route them back through
+# the relevant formatter helper here.
+markup_fmt = "0.27"
+# YAML via g-plane's pretty_yaml. Preserves comments (unlike a plain
+# serde_yaml round-trip, which has no AST representation for them).
+pretty_yaml = "0.6"
+# TOML via toml_edit. Comment-preserving by design - that's the headline
+# feature that separates it from the lossy `toml` crate.
+toml_edit = "0.22"
+# SQL via sqlformat. Generic dialect covers MySQL / PG / SQLite / MSSQL's
+# common subset; users with dialect-specific edge cases should reach for
+# a dedicated tool.
+sqlformat = "0.3"
+# JS / TS / JSX / TSX via dprint-plugin-typescript. Wraps swc_ecma_parser
+# plus dprint's Prettier-compatible printer - same formatter VSCode ships
+# via the "Prettier" extension. Adds ~10-15 MB to the release binary; the
+# README's "Comparison" section calls this out so users understand the
+# size budget. Pinned to 0.96+ because earlier transitive swc_common
+# versions referenced `serde::__private`, which serde 1.0.219+ removed.
+dprint-plugin-typescript = "0.96"
+# Markdown via dprint-plugin-markdown. Re-flows paragraphs, normalises
+# list markers, fences code blocks consistently. Embedded code-block
+# language helpers pass through (None -> leave unchanged) in v0.1.0.
+dprint-plugin-markdown = "0.22"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
