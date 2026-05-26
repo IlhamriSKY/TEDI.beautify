@@ -2,6 +2,12 @@
 
 All notable changes to **Beautify**. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.1.1] - 2026-05-26
+
+### Changed
+
+- **Header button is contextual.** The wand only mounts when an editor tab is focused on a file the sidecar can actually format (`langForPath` returns non-null). On terminal / SSH / diff / preview / extension tabs, or on editor tabs holding an unsupported extension, the button unmounts. Avoids the dead-click case where pressing the wand on a `.png` or terminal tab would just toast a warning. Subscribes via `ctx.app.onContextChange`; falls back to "always show" if the subscribe call throws.
+
 ## [0.1.0] - 2026-05-26
 
 ### Added

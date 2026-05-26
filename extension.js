@@ -111,6 +111,11 @@ let ctx = null;
 let sidecar = null; // { handle, port, token, baseUrl }
 let bootInFlight = null;
 let busy = false;
+/** Mirrors whether the header item is currently mounted, so we don't
+ *  spam setItem / removeItem on every context change. */
+let buttonShown = false;
+/** Disposer returned by `ctx.app.onContextChange`. */
+let unsubscribeContext = null;
 
 function platformDir(os) {
   const arch = os?.arch || "x86_64";
@@ -154,6 +159,7 @@ export async function activate(context) {
   if (typeof ctx.os?.platform !== "string") missing.push("ctx.os.platform");
   if (typeof ctx.installPath !== "string") missing.push("ctx.installPath");
   if (typeof ctx.headerBar?.setItem !== "function") missing.push("ctx.headerBar");
+  if (typeof ctx.app?.onContextChange !== "function") missing.push("ctx.app.onContextChange");
   if (typeof ctx.editor?.getActive !== "function") missing.push("ctx.editor.getActive");
   if (typeof ctx.editor?.setActiveContent !== "function") missing.push("ctx.editor.setActiveContent");
   if (missing.length > 0) {
@@ -167,11 +173,38 @@ export async function activate(context) {
     runFormat().catch((err) => ctx?.logger?.error?.("format failed", err));
   });
 
-  // Header button. `placement: "left"` lands it in the file-view-mode
-  // cluster (immediately before the markdown-preview toggle) so the
-  // wand groups with the other "render this file as X" toggles.
+  // Mount / unmount the header button based on the focused tab so the
+  // wand only appears when there's something to format. Initial sync via
+  // `getContext()` covers the case where TEDI already had an editor tab
+  // focused at extension boot.
   try {
-    ctx.headerBar.setItem({
+    syncHeaderButton(ctx.app.getContext());
+    unsubscribeContext = ctx.app.onContextChange((snapshot) => {
+      syncHeaderButton(snapshot);
+    });
+  } catch (err) {
+    ctx?.logger?.warn?.("context subscribe failed; showing button unconditionally", err);
+    mountHeaderButton();
+  }
+}
+
+function syncHeaderButton(snapshot) {
+  const shouldShow =
+    snapshot?.activeTabKind === "editor" &&
+    langForPath(snapshot.activeFileName) !== null;
+  if (shouldShow && !buttonShown) {
+    mountHeaderButton();
+  } else if (!shouldShow && buttonShown) {
+    unmountHeaderButton();
+  }
+}
+
+// Header button. `placement: "left"` lands it in the file-view-mode
+// cluster (immediately before the markdown-preview toggle) so the
+// wand groups with the other "render this file as X" toggles.
+function mountHeaderButton() {
+  try {
+    ctx?.headerBar?.setItem?.({
       id: BUTTON_ID,
       placement: "left",
       icon: "hugeicon:MagicWand01Icon",
@@ -180,13 +213,34 @@ export async function activate(context) {
         void runFormat();
       },
     });
+    buttonShown = true;
   } catch (err) {
     ctx?.logger?.warn?.("headerBar.setItem failed", err);
   }
 }
 
+function unmountHeaderButton() {
+  try {
+    ctx?.headerBar?.removeItem?.(BUTTON_ID);
+  } catch (err) {
+    ctx?.logger?.warn?.("headerBar.removeItem failed", err);
+  }
+  buttonShown = false;
+}
+
 export async function deactivate() {
   try {
+    if (typeof unsubscribeContext === "function") {
+      try {
+        unsubscribeContext();
+      } catch {
+        /* empty */
+      }
+      unsubscribeContext = null;
+    }
+    if (buttonShown) {
+      unmountHeaderButton();
+    }
     if (sidecar?.baseUrl) {
       // Best effort - the helper exits as soon as the route runs.
       await fetchJson("/shutdown", { method: "POST", body: {} }).catch(() => {});
