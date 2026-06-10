@@ -2,6 +2,16 @@
 
 All notable changes to **Beautify**. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.1.2] - 2026-06-10
+
+### Fixed
+
+- **Beautify now actually formats the buffer instead of always failing with an error toast.** The sidecar serves `POST /format` over loopback HTTP, which WebView2 guards with a CORS preflight because the request carries `Content-Type: application/json` + `Authorization`. The CORS layer replied `Access-Control-Allow-Headers: *`, but per the Fetch spec the `*` wildcard does not authorize the `Authorization` header, so the preflight was rejected and every click surfaced `TypeError: Failed to fetch`. The sidecar now lists `authorization` and `content-type` explicitly ([`sidecar-src/src/main.rs`](sidecar-src/src/main.rs)).
+
+### Changed
+
+- **`engines.tedi` raised to `>=0.3.9`.** The host now enforces this constraint at install time, so older TEDI builds refuse to install the extension and surface a "needs TEDI X.Y.Z" message rather than letting it run against a host that predates the current API surface.
+
 ## [0.1.1] - 2026-05-26
 
 ### Changed

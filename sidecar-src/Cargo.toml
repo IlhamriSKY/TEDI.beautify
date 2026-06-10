@@ -15,6 +15,12 @@ path = "src/main.rs"
 # on loopback authenticated by a per-boot bearer token. ~3 MB compiled.
 tokio = { version = "1.40", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal"] }
 axum = { version = "0.7", default-features = false, features = ["json", "tokio", "http1"] }
+# CORS layer. WebView2 sends a preflight OPTIONS for our POST /format
+# because Content-Type: application/json + an Authorization header are
+# both non-safelisted; without ACAO headers the preflight is rejected
+# and `fetch()` surfaces as `TypeError: Failed to fetch`. Mirrors the
+# tedi.sql-explorer setup; the bearer token remains the real auth.
+tower-http = { version = "0.6", default-features = false, features = ["cors"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rand = "0.8"

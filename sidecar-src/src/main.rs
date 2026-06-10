@@ -23,13 +23,17 @@ use std::process;
 
 use axum::{
     extract::State,
-    http::{HeaderMap, StatusCode},
+    http::{
+        header::{AUTHORIZATION, CONTENT_TYPE},
+        HeaderMap, Method, StatusCode,
+    },
     response::IntoResponse,
     routing::post,
     Json, Router,
 };
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
+use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Clone)]
 struct AppState {
@@ -75,10 +79,25 @@ async fn main() {
         token: token.clone(),
     };
 
+    // CORS: WebView2 sends a preflight OPTIONS for our POST /format
+    // because Content-Type: application/json + Authorization are both
+    // non-safelisted. `Authorization` MUST be listed explicitly: per the
+    // Fetch spec the `*` wildcard in Access-Control-Allow-Headers does NOT
+    // cover Authorization, so `.allow_headers(Any)` (which emits `*`) makes
+    // WebView2 reject the preflight and the extension sees
+    // `TypeError: Failed to fetch` on every /format call. Listing the two
+    // headers we actually send fixes it. Bearer token is the real auth;
+    // CORS just controls what the browser will read back.
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE]);
+
     let app = Router::new()
         .route("/format", post(handle_format))
         .route("/shutdown", post(handle_shutdown))
-        .with_state(state);
+        .with_state(state)
+        .layer(cors);
 
     // Port 0 -> OS picks. Read the bound port back so the JS side knows
     // where to connect.
