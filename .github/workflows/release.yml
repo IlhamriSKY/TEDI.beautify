@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain (${{ matrix.target }})
         uses: dtolnay/rust-toolchain@stable
@@ -100,7 +100,21 @@ jobs:
     needs: build-sidecar
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      # extension.js is NOT committed — build it from src/ so the release .zip
+      # carries a fresh bundle.
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Build extension.js from src/
+        run: |
+          set -euo pipefail
+          npm ci
+          node build.mjs
+          node --check extension.js
 
       - name: Resolve version
         id: ver
