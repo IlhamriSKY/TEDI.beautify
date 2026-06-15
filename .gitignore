@@ -14,3 +14,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# JS build tooling + built bundle (CI builds extension.js into the release .zip).
+node_modules/
+/extension.js
