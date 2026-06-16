@@ -2,9 +2,9 @@
 
 Zero-config formatter extension for [TEDI](https://github.com/IlhamriSKY/TEDI).
 Adds a wand icon to the header (left of the markdown-preview button) or
-`Mod+Alt+B`; the active editor buffer is reformatted in place and the
-user presses Ctrl+S to persist. A native sidecar handles the parse +
-re-print so the TEDI core binary stays free of formatter dependencies.
+`Mod+Alt+B`; the active editor buffer is reformatted in place and the user
+presses Ctrl+S to persist. A native sidecar handles the parse and re-print so
+the TEDI core binary stays free of formatter dependencies.
 
 <p align="center">
   <img src="logo.png" alt="Beautify" width="128" />
@@ -12,14 +12,14 @@ re-print so the TEDI core binary stays free of formatter dependencies.
 
 > [!NOTE]
 > Requires TEDI >= 0.2.27 for the `ctx.editor` host API and the
-> `placement: "left"` header-button slot. On older TEDI builds the
-> extension activates but the button stays out of the way and a toast
-> explains what is missing.
+> `placement: "left"` header-button slot. On older TEDI builds the extension
+> activates but the button stays out of the way and a toast explains what is
+> missing.
 
 > [!NOTE]
-> The bundled sidecar binary is unsigned. The first launch on each
-> platform may show SmartScreen (Windows), Gatekeeper (macOS), or
-> nothing (Linux). See [Trust prompts](#trust-prompts).
+> The bundled sidecar binary is unsigned. The first launch on each platform may
+> show SmartScreen (Windows), Gatekeeper (macOS), or nothing (Linux). See
+> [Trust prompts](#trust-prompts).
 
 ---
 
@@ -29,8 +29,8 @@ re-print so the TEDI core binary stays free of formatter dependencies.
 2. Switch to the **From GitHub** tab.
 3. Paste `IlhamriSKY/TEDI.beautify` and click **Review → Install**.
 
-Click the **wand icon** that appears next to the markdown-preview toggle
-in the header, or press `Mod+Alt+B`, to format the file you have open.
+Click the **wand icon** that appears next to the markdown-preview toggle in the
+header, or press `Mod+Alt+B`, to format the file you have open.
 
 ## Update
 
@@ -63,11 +63,15 @@ minus a few that overlap with TEDI core or are still niche.
 | `.sql` | SQL | `sqlformat` (generic dialect, 2-space, uppercase keywords) |
 | `.xml`, `.svg` | XML / SVG | depth-based reindenter (keeps attribute order intact) |
 
-Files outside this list surface a "no formatter for this file type yet"
-toast on click. Deliberately out of scope:
+Files outside this list surface a "no formatter for this file type yet" toast on
+click. Deliberately out of scope:
 
-- **Angular component templates** -- enabled in code (`langForPath("foo.angular")` would dispatch to `markup_fmt`'s Angular mode) but no canonical extension exists, so files have to be opened as `.html` to pick up formatting.
-- **GraphQL, Go, Rust, Python, Ruby** -- best served by their toolchain formatters (`gofmt`, `rustfmt`, `ruff format`, etc.). Configure them via TEDI core's external-formatter settings instead.
+- **Angular component templates:** enabled in code (`langForPath("foo.angular")`
+  would dispatch to `markup_fmt`'s Angular mode) but no canonical extension
+  exists, so files have to be opened as `.html` to pick up formatting.
+- **GraphQL, Go, Rust, Python, Ruby:** best served by their toolchain formatters
+  (`gofmt`, `rustfmt`, `ruff format`, etc.). Configure them via TEDI core's
+  external-formatter settings instead.
 
 ## How it works
 
@@ -92,17 +96,16 @@ TEDI webview                            Native sidecar
 On click the extension:
 
 1. Picks the helper binary for the current OS / arch from `sidecar/<platform>-<arch>/`.
-2. Spawns it via `shell_bg_spawn_direct` the first time (lazy boot).
-   The sidecar binds `127.0.0.1` on an OS-assigned port and prints
-   `READY {port, token}` to stdout.
+2. Spawns it via `shell_bg_spawn_direct` the first time (lazy boot). The sidecar
+   binds `127.0.0.1` on an OS-assigned port and prints `READY {port, token}` to
+   stdout.
 3. Reads the `READY` line via `shell_bg_logs`.
-4. POSTs `{lang, content}` to `/format` with the bearer token, reads
-   the formatted text back, and applies it via `ctx.editor.setActiveContent`.
+4. POSTs `{lang, content}` to `/format` with the bearer token, reads the
+   formatted text back, and applies it via `ctx.editor.setActiveContent`.
 5. The buffer is now dirty; the user presses Ctrl+S to persist.
 
-`shell_bg_kill` runs on `deactivate` so disable / uninstall stops the
-sidecar cleanly. The bearer token is generated per boot and never
-reaches disk.
+`shell_bg_kill` runs on `deactivate` so disable / uninstall stops the sidecar
+cleanly. The bearer token is generated per boot and never reaches disk.
 
 ## Permissions
 
@@ -116,9 +119,9 @@ reaches disk.
 | `invoke:shell_bg_logs` | Reads the `READY {port, token}` handshake from the helper's stdout. |
 | `invoke:shell_bg_kill` | Stops the helper on disable / uninstall. |
 
-No filesystem, keychain, or general-network permissions. The sidecar
-binds loopback only and authenticates every call with the per-boot
-bearer token; no other machine on the LAN can reach it.
+No filesystem, keychain, or general-network permissions. The sidecar binds
+loopback only and authenticates every call with the per-boot bearer token; no
+other machine on the LAN can reach it.
 
 ## Comparison with TEDI's built-in formatter
 
@@ -139,10 +142,10 @@ external commands. Beautify is **complementary**, not a replacement:
 | Network | Loopback HTTP to the sidecar | In-process Prettier or spawned external |
 | Offline | Yes (everything bundled) | Yes for built-in; external = depends on tool |
 
-If you already have Prettier configured, keep using it. Beautify is for
-the cases where you want a "just press the button" answer without
-installing or wiring anything -- the same surface VSCode's built-in
-formatters cover, packaged as a single zero-config extension.
+If you already have Prettier configured, keep using it. Beautify is for the
+cases where you want a "just press the button" answer without installing or
+wiring anything: the same surface VSCode's built-in formatters cover, packaged
+as a single zero-config extension.
 
 ## Trust prompts
 
@@ -150,7 +153,7 @@ formatters cover, packaged as a single zero-config extension.
 | --- | --- | --- |
 | Windows | SmartScreen ("Windows protected your PC"). | Click **More info → Run anyway** once. |
 | macOS | Gatekeeper may flag the helper as quarantined. | `xattr -dr com.apple.quarantine ~/Library/Application\ Support/id.ilhamrisky.tedi/extensions/tedi.beautify/sidecar` |
-| Linux | Nothing. TEDI's installer `chmod 0755`s `sidecar/` after extraction. | -- |
+| Linux | Nothing. TEDI's installer `chmod 0755`s `sidecar/` after extraction. | n/a |
 
 ## Development
 
@@ -158,22 +161,21 @@ formatters cover, packaged as a single zero-config extension.
 git clone https://github.com/IlhamriSKY/TEDI.beautify.git
 cd TEDI.beautify
 
-# Build the sidecar for your host.
+# Build the native sidecar for your host.
 cd sidecar-src
 cargo build --release
 mkdir -p ../sidecar/<platform>-<arch>      # e.g. windows-x86_64
 cp target/release/tedi-beautify-helper* ../sidecar/<platform>-<arch>/
 cd ..
 
-# UI: build extension.js from src/ (generated by esbuild — not committed).
+# Build extension.js from src/ (generated by esbuild, not committed).
 npm install
 npm run build
 
-# Package + install via Settings → Extensions → From file:
+# Package, then install via Settings → Extensions → From file:
 zip -r dev.zip manifest.json extension.js logo.png README.md CHANGELOG.md LICENSE sidecar
 ```
 
-To cut a release, tag `vX.Y.Z` and push. The CI in
-[`.github/workflows/release.yml`](.github/workflows/release.yml) builds
-the sidecar for every supported platform and uploads the zip to the
-GitHub release.
+To cut a release, tag `vX.Y.Z` and push. CI in
+[`.github/workflows/release.yml`](.github/workflows/release.yml) builds the
+sidecar for every supported platform and uploads the zip to the GitHub release.
