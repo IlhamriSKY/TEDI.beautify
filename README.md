@@ -75,22 +75,11 @@ click. Deliberately out of scope:
 
 ## How it works
 
-```
-TEDI webview                            Native sidecar
-┌────────────────────────┐  HTTP +    ┌──────────────────────────────────┐
-│ extension.js           │  Bearer    │ tedi-beautify-helper             │
-│ • header wand button   │ ◀────────▶ │ • axum on 127.0.0.1:rand         │
-│ • Mod+Alt+B keybinding │  random    │ • per-boot 32-byte token         │
-│ • ctx.editor.getActive │  port      │ • match lang -> formatter helper │
-│ • ctx.editor.setActive │            └────────────┬─────────────────────┘
-└────────────────────────┘                         │
-        │                                          ▼
-        ▼                              dprint-plugin-typescript,
-   user Ctrl+S to save                 dprint-plugin-markdown,
-                                       malva (CSS/SCSS/LESS/Sass),
-                                       markup_fmt (HTML/Vue/Svelte/Astro),
-                                       pretty_yaml, toml_edit, sqlformat,
-                                       serde_json
+```mermaid
+flowchart LR
+    A["extension.js<br/>header wand button, Mod+Alt+B<br/>ctx.editor.getActive / setActive"] <-->|"HTTP + Bearer<br/>127.0.0.1:random port"| B["tedi-beautify-helper<br/>axum, per-boot 32-byte token<br/>match lang to formatter"]
+    B --> C["dprint-plugin-typescript, dprint-plugin-markdown,<br/>malva (CSS/SCSS/LESS/Sass),<br/>markup_fmt (HTML/Vue/Svelte/Astro),<br/>pretty_yaml, toml_edit, sqlformat, serde_json"]
+    A --> D["user presses Ctrl+S to save"]
 ```
 
 On click the extension:
