@@ -1,6 +1,6 @@
 # TEDI Beautify
 
-Zero-config formatter extension for [TEDI](https://github.com/IlhamriSKY/TEDI).
+Zero-config formatter extension for [TEDI](https://tedi.ilhamriski.com/).
 Adds a wand icon to the header (left of the markdown-preview button) or
 `Mod+Alt+B`; the active editor buffer is reformatted in place and the user
 presses Ctrl+S to persist. A native sidecar handles the parse and re-print so
