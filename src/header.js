@@ -25,7 +25,7 @@ export function mountHeaderButton() {
     ctx?.headerBar?.setItem?.({
       id: BUTTON_ID,
       placement: "left",
-      icon: "hugeicon:MagicWand01Icon",
+      icon: "lucide:WandSparkles",
       tooltip: "Beautify (Ctrl+Alt+B)",
       onClick: () => {
         void runFormat();
