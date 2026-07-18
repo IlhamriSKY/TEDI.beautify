@@ -2,6 +2,13 @@
 
 All notable changes to **Beautify**. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.1.5] - 2026-07-18
+
+### Changed
+
+- **The header button uses a `lucide:` icon ref** (`lucide:WandSparkles`) instead of the legacy `hugeicon:MagicWand01Icon`. The host still resolves the old ref through its back-compat alias table, so this is the same glyph with no visual change, just the current icon API.
+- **Documentation.** Project links point at the TEDI website (https://tedi.ilhamriski.com/) in both `manifest.json` and the README, the README follows the structure shared across the TEDI extensions, and "How it works" is rendered as a Mermaid diagram.
+
 ## [0.1.4] - 2026-06-16
 
 ### Changed
