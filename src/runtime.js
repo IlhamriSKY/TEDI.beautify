@@ -14,6 +14,7 @@ export const READY_POLL_MS = 80;
 
 // ----------------------------- Module state ----------------------------------
 
+/** @type {import("../tedi").ExtensionContext | null} */
 export let ctx = null;
 export let sidecar = null; // { handle, port, token, baseUrl }
 export let bootInFlight = null;

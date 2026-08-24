@@ -45,6 +45,7 @@ import {
 } from "./runtime.js";
 import { fetchJson } from "./sidecar.js";
 
+/** @param {import("../tedi").ExtensionContext} context */
 export async function activate(context) {
   setCtx(context);
 
