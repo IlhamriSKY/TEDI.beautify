@@ -109,7 +109,51 @@ function extractReady(buf) {
   }
 }
 
+/** A dead helper fails below HTTP: `fetch` rejects with a TypeError ("Failed
+ *  to fetch") rather than returning a status. That happens whenever the
+ *  process is gone - it crashed, the OS killed it, or it exited on its own
+ *  idle timeout - and it is the one error worth retrying, because a fresh
+ *  boot fixes it. */
+function isTransportError(err) {
+  return err instanceof TypeError || /failed to fetch|network|load failed/i.test(err?.message ?? "");
+}
+
+/**
+ * POST/GET JSON against the helper, booting it on first use.
+ *
+ * Retries once through a fresh sidecar when the transport dies. Without this
+ * the cached `baseUrl` outlives the process it points at, so a single crashed
+ * helper made every later Beautify click fail with "Failed to fetch" until the
+ * user toggled the extension off and on.
+ */
 export async function fetchJson(path, opts = {}) {
+  try {
+    return await request(path, opts);
+  } catch (err) {
+    // `noRetry` is for /shutdown: booting a helper just to ask it to exit is
+    // the opposite of what deactivate wants, and on Windows the spawn can
+    // race the uninstaller deleting the file out from under it.
+    if (opts.noRetry || !isTransportError(err)) throw err;
+    ctx?.logger?.warn?.("beautify sidecar unreachable; restarting", err);
+    await discardSidecar();
+    return request(path, opts);
+  }
+}
+
+/** Drop the cached handle and best-effort kill whatever is behind it - the
+ *  process may be hung rather than gone, and a hung one would keep its port. */
+async function discardSidecar() {
+  const dead = sidecar;
+  setSidecar(null);
+  if (dead?.handle == null) return;
+  try {
+    await ctx.invoke("shell_bg_kill", { handle: dead.handle });
+  } catch {
+    /* already gone */
+  }
+}
+
+async function request(path, opts) {
   if (!sidecar?.baseUrl) await ensureSidecar();
   const url = `${sidecar.baseUrl}${path}`;
   const headers = {

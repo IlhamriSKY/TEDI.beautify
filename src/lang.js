@@ -5,16 +5,20 @@
 // show the wand) and the format flow (to pick the formatter + label).
 
 /** File-extension to formatter language id. Lowercased on lookup. Keep in
- *  sync with the `match lang` arms in `sidecar-src/src/main.rs`. Covers
- *  the same language set Prettier ships in VSCode plus SQL and TOML. */
+ *  sync with the `match lang` arms in `sidecar-src/src/format.rs`. Covers
+ *  the same language set Prettier ships in VSCode plus SQL, TOML, XML and the
+ *  template dialects markup_fmt understands. */
 export const LANG_BY_EXT = {
-  // JSON family. JSONC / JSON5 reuse the JSON path; comments and trailing
-  // commas only survive when the input happens to be strict JSON.
+  // JSON family. `jsonc` is its own id, not an alias for `json`: it selects
+  // the sidecar's comment- and trailing-comma-preserving mode. Before that
+  // split, any .jsonc file with a comment in it simply failed to parse.
   json: "json",
-  jsonc: "json",
-  json5: "json",
+  jsonc: "jsonc",
+  json5: "jsonc",
   // CSS family via malva (one crate, four dialects).
   css: "css",
+  pcss: "css",
+  postcss: "css",
   scss: "scss",
   less: "less",
   sass: "sass",
@@ -25,10 +29,28 @@ export const LANG_BY_EXT = {
   vue: "vue",
   svelte: "svelte",
   astro: "astro",
-  // XML / SVG via the custom depth-based indenter (markup_fmt is too
-  // HTML-flavoured and would reorder attributes / rewrite void tags).
+  // Template dialects, same crate.
+  jinja: "jinja",
+  jinja2: "jinja",
+  j2: "jinja",
+  twig: "jinja",
+  njk: "jinja",
+  nunjucks: "jinja",
+  vto: "vento",
+  mustache: "mustache",
+  hbs: "mustache",
+  handlebars: "mustache",
+  // XML family, also markup_fmt (it gained a real XML mode in 0.27; this used
+  // to be a hand-rolled indenter that split tags at the first `>`).
   xml: "xml",
   svg: "xml",
+  xsl: "xml",
+  xslt: "xml",
+  xsd: "xml",
+  wsdl: "xml",
+  rss: "xml",
+  atom: "xml",
+  plist: "xml",
   // JS / TS / JSX / TSX via dprint-plugin-typescript.
   js: "javascript",
   mjs: "javascript",
@@ -38,10 +60,12 @@ export const LANG_BY_EXT = {
   cts: "typescript",
   mts: "typescript",
   tsx: "tsx",
-  // Markdown via dprint-plugin-markdown.
+  // Markdown via dprint-plugin-markdown. `.mdx` is NOT here: dprint has no MDX
+  // mode, so it reads a JSX block as an HTML block and can strip the
+  // indentation off its props. On a realistic MDX file that de-indent is the
+  // only edit it makes - all cost, no benefit, and re-running does not undo it.
   md: "markdown",
   markdown: "markdown",
-  mdx: "markdown",
   // Data formats.
   yaml: "yaml",
   yml: "yaml",
@@ -49,9 +73,27 @@ export const LANG_BY_EXT = {
   sql: "sql",
 };
 
+/** Extension-less config files, matched on the whole file name. `extOf` reads
+ *  `.babelrc` as "no extension", so without this table the tool-config files
+ *  people most often want tidied are the ones the wand refuses to appear for.
+ *  All of these accept comments in practice, hence `jsonc`.
+ *
+ *  Only names whose tool documents a JSON-family format are listed.
+ *  `.prettierrc`, `.eslintrc` and `.stylelintrc` are deliberately absent: their
+ *  tools accept JSON *or* YAML in the same extension-less file, and nothing in
+ *  the name says which, so the wand would offer to format a YAML one and then
+ *  fail on the first `:`. No formatter beats the wrong formatter. */
+export const LANG_BY_NAME = {
+  ".babelrc": "jsonc",
+  ".swcrc": "jsonc",
+  ".jscsrc": "jsonc",
+  ".jshintrc": "jsonc",
+};
+
 /** Pretty labels surfaced in toasts. */
 export const LANG_LABELS = {
   json: "JSON",
+  jsonc: "JSONC",
   css: "CSS",
   scss: "SCSS",
   less: "LESS",
@@ -60,6 +102,9 @@ export const LANG_LABELS = {
   vue: "Vue",
   svelte: "Svelte",
   astro: "Astro",
+  jinja: "Jinja",
+  vento: "Vento",
+  mustache: "Mustache",
   xml: "XML",
   javascript: "JavaScript",
   jsx: "JSX",
@@ -80,6 +125,8 @@ function extOf(filePath) {
 }
 
 export function langForPath(filePath) {
+  const byName = LANG_BY_NAME[baseName(filePath).toLowerCase()];
+  if (byName) return byName;
   const ext = extOf(filePath);
   if (!ext) return null;
   return LANG_BY_EXT[ext] ?? null;

@@ -54,6 +54,20 @@ jobs:
             runner: ubuntu-latest
             sidecar_dir: linux-x86_64
             exe_suffix: ""
+          # The JS side maps windows-aarch64 and linux-aarch64 (see
+          # `platformDir` in src/sidecar.js), so without these two rows an ARM
+          # machine resolved a path that had never been built and got a
+          # "reinstall the extension" error that reinstalling could not fix.
+          # Both labels are GA GitHub-hosted runners, free on public repos, so
+          # these are native builds - no cross linker to keep working.
+          - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
+            sidecar_dir: windows-aarch64
+            exe_suffix: .exe
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+            sidecar_dir: linux-aarch64
+            exe_suffix: ""
 
     steps:
       - name: Checkout

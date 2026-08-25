@@ -2,6 +2,35 @@
 
 All notable changes to **Beautify**. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.2.0] - 2026-08-25
+
+### Added
+
+- **Embedded code is formatted, not passed through.** A `<script>` or `<style>` block in HTML / Vue / Svelte / Astro, a Vue or Angular binding attribute, a fenced code block in Markdown, and a `` css`…` `` / `` html`…` `` / `` sql`…` `` / `` styled.div`…` `` tagged template in JS or TS all go back through the matching formatter, at whatever print width is left after their parent's indentation. Until now every one of those callbacks returned the original bytes, so a `.vue` file came back with its `<template>` tidied and its `<script setup>` exactly as it was. A block whose language has no formatter here, or that does not parse, is still left byte-for-byte alone, so a half-written `<script>` never costs you the rest of the document. Recursion is capped at four levels.
+- **JSONC really works now, and so do the extension-less config files.** `.jsonc` and `.json5` map to a comment- and trailing-comma-preserving mode instead of being aliases for strict JSON, which `serde_json` rejected outright the moment a `//` appeared. `.babelrc`, `.swcrc`, `.jscsrc` and `.jshintrc` are matched by file name - the wand used to refuse to appear for any of them, because a leading dot reads as "no extension". `.prettierrc`, `.eslintrc` and `.stylelintrc` are deliberately left out: those tools accept JSON *or* YAML in the same extension-less file, so the wand would offer to format a YAML one and then fail.
+- **More languages:** Jinja / Twig / Nunjucks (`.jinja`, `.jinja2`, `.j2`, `.twig`, `.njk`, `.nunjucks`), Vento (`.vto`), Mustache / Handlebars (`.mustache`, `.hbs`, `.handlebars`), PostCSS (`.pcss`, `.postcss`), and the rest of the XML family (`.xsl`, `.xslt`, `.xsd`, `.wsdl`, `.rss`, `.atom`, `.plist`).
+- **CRLF and BOM survive a format.** The line ending and any UTF-8 BOM are detached before parsing and re-applied after printing. Formatting a CRLF file no longer rewrites every line and turns a two-line edit into a whole-file diff.
+- **ARM builds.** `windows-aarch64` and `linux-aarch64` are built and shipped. The extension already resolved those paths, so on an ARM machine it failed with "reinstall the extension to repopulate sidecar/" - which reinstalling could not fix, because the binary had never been built.
+
+### Fixed
+
+- **JSON no longer re-sorts your keys or rewrites your numbers.** The old path parsed into a `serde_json::Value` and printed it back out. `serde_json`'s default map is a `BTreeMap`, so every object came back in alphabetical order - reformatting a `package.json` reordered the whole file. Numbers were stored as i64 / u64 / f64, so ids inside integer range survived but anything outside them did not: measured against the shipped 0.1.6, `123456789012345678901234567890` came back as `1.2345678901234568e+29`, `1.0000000000000001` as `1.0`, and `-99999999999999999999` as `-1e+20`. Both paths now go through `dprint-plugin-json`, which is document-ordered and keeps every number literal byte-for-byte.
+- **XML no longer edits attribute values.** The hand-rolled indenter ended a tag at the first `>` it saw, which lands inside `<a title="x > y">` and inside `<!-- p > q -->`, and it then inserted a newline there. That is a change to the document, not to its whitespace. `markup_fmt` gained a real XML mode in 0.27, so the whole hand-rolled path is gone.
+- **A crashed sidecar is no longer permanent.** The cached `baseUrl` outlived the process it pointed at, so once the helper died every later click failed with `TypeError: Failed to fetch` until the extension was toggled off and on. A transport-level failure now discards the handle and boots a fresh helper, once.
+- **A parser panic no longer kills the sidecar.** `panic = "abort"` is off and formatting runs on a blocking thread inside `catch_unwind`, so a pathological file returns a 400 for that file and the helper stays up.
+- **Files over 2 MB format.** axum's default body limit is 2 MB, which is smaller than the minified bundles a beautifier is most useful on; the ceiling is now 64 MB. Verified end to end against a 5.7 MB JSON document.
+- **The `engines.tedi` note in the README said `>= 0.2.27`** while the manifest has required `>= 0.3.9` since 0.1.2.
+
+- **`.mdx` no longer claims a formatter.** `dprint-plugin-markdown` has no MDX mode: it reads a JSX block as an HTML block and strips the indentation off its props. Diffed against a real MDX file, that de-indent was the *only* edit the formatter made - all cost, no benefit - and re-running does not put the indentation back. `.md` and `.markdown` are unaffected.
+
+### Changed
+
+- **Security.** The bearer token is compared in constant time, and the request body is read as bytes and parsed only *after* the token check, so an unauthenticated caller cannot make the helper parse a 64 MB payload.
+- **The helper exits after 30 minutes idle.** If TEDI is killed rather than closed, `deactivate` never runs; on macOS and Linux nothing else would have reaped the process, and it would have sat on a loopback port indefinitely.
+- **Dependencies.** axum 0.7 → 0.8, tower-http 0.6 → 0.7, tokio 1.40 → 1.53, malva 0.15 → 0.16, sqlformat 0.3 → 0.5, toml_edit 0.22 → 0.25; `rand` is replaced by a direct `getrandom` call, and `dprint-plugin-json` is added. The release binary is ~5.6 MB.
+- **`scripts/verify.mjs`** - 9 assertions over `langForPath`, the function that decides whether the wand appears and which formatter runs, including a drift guard that every language id the map can produce has a matching arm in the sidecar. Runs in CI and as `npm run verify`.
+- **CI compiles the sidecar on every push.** `release.yml` was the only workflow that ran `cargo`, so a `sidecar-src/` change that did not build stayed green until somebody pushed a tag - at which point the release, not the commit, was what broke. `build-check.yml` now runs `cargo fmt --check`, `clippy -D warnings` and `cargo test` (11 tests) alongside the bundle build.
+
 ## [0.1.6] - 2026-08-24
 
 ### Changed

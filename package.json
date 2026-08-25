@@ -7,8 +7,9 @@
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "check": "node --check extension.js",
-    "typecheck": "tsc -p jsconfig.json"
+    "check": "node --check extension.js && node scripts/verify.mjs",
+    "typecheck": "tsc -p jsconfig.json",
+    "verify": "node scripts/verify.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",

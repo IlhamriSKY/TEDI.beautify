@@ -100,8 +100,9 @@ export async function deactivate() {
       unmountHeaderButton();
     }
     if (sidecar?.baseUrl) {
-      // Best effort - the helper exits as soon as the route runs.
-      await fetchJson("/shutdown", { method: "POST", body: {} }).catch(() => {});
+      // Best effort - the helper exits as soon as the route runs. `noRetry`
+      // so an already-dead helper does not get replaced by a fresh one here.
+      await fetchJson("/shutdown", { method: "POST", body: {}, noRetry: true }).catch(() => {});
     }
     if (sidecar?.handle != null) {
       await ctx.invoke("shell_bg_kill", { handle: sidecar.handle }).catch(() => {});
