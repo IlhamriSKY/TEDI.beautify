@@ -2,7 +2,7 @@
 
 Zero-config formatter extension for [TEDI](https://tedi.ilhamriski.com/).
 Adds a wand icon to the header (left of the markdown-preview button) or
-`Mod+Alt+B`; the active editor buffer is reformatted in place and the user
+`Mod+Alt+F`; the active editor buffer is reformatted in place and the user
 presses Ctrl+S to persist. A native sidecar handles the parse and re-print so
 the TEDI core binary stays free of formatter dependencies.
 
@@ -30,7 +30,7 @@ the TEDI core binary stays free of formatter dependencies.
 3. Paste `IlhamriSKY/TEDI.beautify` and click **Review → Install**.
 
 Click the **wand icon** that appears next to the markdown-preview toggle in the
-header, or press `Mod+Alt+B`, to format the file you have open.
+header, or press `Mod+Alt+F`, to format the file you have open.
 
 ## Update
 
@@ -120,7 +120,7 @@ document.
 
 ```mermaid
 flowchart LR
-    A["extension.js<br/>header wand button, Mod+Alt+B<br/>ctx.editor.getActive / setActive"] <-->|"HTTP + Bearer<br/>127.0.0.1:random port"| B["tedi-beautify-helper<br/>axum, per-boot 32-byte token<br/>match lang to formatter"]
+    A["extension.js<br/>header wand button, Mod+Alt+F<br/>ctx.editor.getActive / setActive"] <-->|"HTTP + Bearer<br/>127.0.0.1:random port"| B["tedi-beautify-helper<br/>axum, per-boot 32-byte token<br/>match lang to formatter"]
     B --> C["dprint-plugin-typescript / -markdown / -json,<br/>malva (CSS/SCSS/LESS/Sass),<br/>markup_fmt (HTML/Vue/Svelte/Astro/XML),<br/>pretty_yaml, toml_edit, sqlformat"]
     C -.->|"embedded script / style / fence"| C
     A --> D["user presses Ctrl+S to save"]
@@ -184,7 +184,7 @@ external commands. Beautify is **complementary**, not a replacement:
 | Markdown / JSON | Bundled (dprint plugins) | Built-in Prettier |
 | TOML / SQL / XML / Jinja | Bundled | External tool only |
 | Embedded script / style / fences | Yes | Yes |
-| Trigger | Wand icon, `Mod+Alt+B` | Right-click menu, format-on-save |
+| Trigger | Wand icon, `Mod+Alt+F` | Right-click menu, format-on-save |
 | Network | Loopback HTTP to the sidecar | In-process Prettier or spawned external |
 | Offline | Yes (everything bundled) | Yes for built-in; external = depends on tool |
 

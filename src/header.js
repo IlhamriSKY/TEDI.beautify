@@ -26,7 +26,7 @@ export function mountHeaderButton() {
       id: BUTTON_ID,
       placement: "left",
       icon: "lucide:WandSparkles",
-      tooltip: "Beautify (Ctrl+Alt+B)",
+      tooltip: "Beautify (Ctrl+Alt+F)",
       onClick: () => {
         void runFormat();
       },

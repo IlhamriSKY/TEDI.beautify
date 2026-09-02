@@ -2,6 +2,12 @@
 
 All notable changes to **Beautify**. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.2.1] - 2026-09-02
+
+### Fixed
+
+- **The format shortcut is `Mod+Alt+F`, not `Mod+Alt+B`.** `Mod+Alt+B` is TEDI's own "toggle right panel", so the two were bound to the same chord and which one ran came down to the order the two capture-phase listeners happened to be registered in - stable until you rebound anything in Settings > Shortcuts, after which the extension started eating the panel toggle. TEDI now keeps a chord its own catalog claims and warns in the console instead, so the old binding would simply have stopped working. `F` for Format; the wand icon in the header is unchanged.
+
 ## [0.2.0] - 2026-08-25
 
 ### Added
